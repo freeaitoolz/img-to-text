@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://freeaitoolz.github.io/img-to-text/sitemap.xml
