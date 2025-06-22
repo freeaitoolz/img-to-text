@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image to Text Converter - OCR</title>
+  
+  <!-- Tesseract.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+
+  <!-- Inline CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .container {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    #imageInput {
+      margin: 15px 0;
+    }
+
+    #previewContainer {
+      margin: 20px 0;
+    }
+
+    #preview {
+      max-width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #outputText {
+      width: 100%;
+      height: 200px;
+      margin-top: 20px;
+      resize: none;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-style: italic;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🖼️ Image to Text Converter (OCR)</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button id="convertBtn">Convert to Text</button>
+
+    <div id="previewContainer">
+      <img id="preview" src="#" alt="Image preview" hidden>
+    </div>
+
+    <textarea id="outputText" placeholder="Extracted text will appear here..." readonly></textarea>
+    <button id="copyBtn">📋 Copy Text</button>
+
+    <p id="status"></p>
+  </div>
+
+  <!-- Inline JavaScript -->
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const convertBtn = document.getElementById("convertBtn");
+    const preview = document.getElementById("preview");
+    const outputText = document.getElementById("outputText");
+    const copyBtn = document.getElementById("copyBtn");
+    const status = document.getElementById("status");
+
+    // Show preview
+    imageInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.hidden = false;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Convert to text
+    convertBtn.addEventListener("click", () => {
+      const file = imageInput.files[0];
+      if (!file) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      status.textContent = "🔍 Recognizing text... Please wait...";
+
+      Tesseract.recognize(
+        file,
+        'eng',
+        {
+          logger: m => {
+            status.textContent = `⏳ ${m.status} (${Math.round(m.progress * 100)}%)`;
+          }
+        }
+      ).then(({ data: { text } }) => {
+        outputText.value = text;
+        status.textContent = "✅ Text extracted successfully!";
+      }).catch(err => {
+        console.error(err);
+        status.textContent = "❌ Error processing image. Try again.";
+      });
+    });
+
+    // Copy text
+    copyBtn.addEventListener("click", () => {
+      outputText.select();
+      document.execCommand("copy");
+      status.textContent = "📋 Text copied to clipboard!";
+    });
+  </script>
+</body>
+</html>
